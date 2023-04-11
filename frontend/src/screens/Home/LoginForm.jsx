@@ -1,8 +1,7 @@
-import { Form, Formik } from "formik";
+import { Formik } from "formik";
 import { Grid, Container, Box, Button } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import * as Yup from "yup";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
@@ -10,15 +9,10 @@ import { useNavigate } from "react-router-dom";
 
 export default function LoginForm({ onSuccess }) {
   const navigate = useNavigate();
-  const validation = Yup.object().shape({
-    name: Yup.string().required("Name is required"),
-    email: Yup.string().email("Invalid").required("Email is required"),
-    password: Yup.string().required("Password is required"),
-  });
 
   const [payload, setPayload] = useState({
-    email: "",
-    password: "",
+    email: null,
+    password: null,
   });
 
   const handleLogin = async () => {
@@ -27,6 +21,17 @@ export default function LoginForm({ onSuccess }) {
         email: payload.email,
         password: payload.password,
       };
+      if (!reqBody.email || !reqBody.password)
+        return toast.error("Please fill all the fields");
+      if (reqBody.password.length < 8) {
+        toast.error("Your password must be at least 8 characters");
+      }
+      if (reqBody.password.search(/[a-z]/i) < 0) {
+        toast.error("Your password must contain at least one letter.");
+      }
+      if (reqBody.password.search(/[0-9]/) < 0) {
+        toast.error("Your password must contain at least one digit.");
+      }
       const res = await axios.post("http://localhost:5000/login", reqBody);
       if (res.data.message === "Login Successfull!") {
         toast.success(res.data.message);
@@ -60,17 +65,13 @@ export default function LoginForm({ onSuccess }) {
             email: "",
             password: "",
           }}
-          validationSchema={validation}
-          onSubmit={(values) => {
-            console.log(values);
-          }}
         >
           <Grid container justifyContent={"center"} spacing={2}>
             <Grid item xs={12}>
               <TextField
-                onChange={(e) =>
-                  setPayload({ ...payload, email: e.target.value })
-                }
+                onChange={(e) => {
+                  setPayload({ ...payload, email: e.target.value });
+                }}
                 required
                 sx={{
                   backgroundColor: "#323544",
