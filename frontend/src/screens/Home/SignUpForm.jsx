@@ -1,4 +1,4 @@
-import { Form, Formik } from "formik";
+import { Formik } from "formik";
 import {
   Grid,
   Container,
@@ -6,9 +6,13 @@ import {
   Typography,
   TextField,
   Button,
+  InputAdornment,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
 import { useState } from "react";
 import axios from "axios";
+import InfoIcon from "@mui/icons-material/Info";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function SignUpForm({ onSuccess }) {
@@ -19,12 +23,29 @@ export default function SignUpForm({ onSuccess }) {
     password: "",
     cPassword: "",
   });
+  console.log(payload);
 
   const handleSignup = async () => {
-    if (payload.password !== payload.cPassword) {
-      toast.error("Please make sure your passwords match.");
+    if (
+      !payload.email ||
+      !payload.password ||
+      !payload.cPassword ||
+      !payload.firstName ||
+      !payload.lastName
+    )
+      return toast.error("Please fill all the fields");
+    if (payload.password.length < 8) {
+      return toast.error("Your password must be at least 8 characters");
     }
-
+    if (payload.password.search(/[a-z]/i) < 0) {
+      return toast.error("Your password must contain at least one letter.");
+    }
+    if (payload.password.search(/[0-9]/) < 0) {
+      return toast.error("Your password must contain at least one digit.");
+    }
+    if (payload.password !== payload.cPassword) {
+      return toast.error("Please make sure your passwords match.");
+    }
     try {
       const reqBody = {
         name: payload.firstName + " " + payload.lastName,
@@ -172,6 +193,26 @@ export default function SignUpForm({ onSuccess }) {
                       borderColor: "#323544",
                     },
                   },
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton>
+                        <Tooltip
+                          sx={{
+                            fontSize: "22px",
+                          }}
+                          title="Password Must Contain atleast 8 characters 1 digit & 1 letter"
+                        >
+                          <InfoIcon
+                            sx={{
+                              color: "#fff",
+                            }}
+                          />
+                        </Tooltip>
+                      </IconButton>
+                    </InputAdornment>
+                  ),
                 }}
                 onChange={(e) =>
                   setPayload({ ...payload, password: e.target.value })
